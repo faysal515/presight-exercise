@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Fill viewport so nested flex + overflow scroll chains resolve correctly */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}

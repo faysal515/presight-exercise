@@ -1,40 +1,68 @@
-# Presight Frontend Exercise
+# Presight exercise
 
-#### Create a react application and nodes web server for the following use cases
+Monorepo with a **Node/Express** API (`server`) and a **React + Vite** client (`client`).
 
-1. Create a mock api to serve paginated list of information with filtering and search capabilities
+## Requirements
 
-   - Define a data object having the following
-     - avatar
-     - first_name
-     - last_name
-     - age
-     - nationality
-     - hobbies (list of 0 to 10 items)
-   - Display the list as individual cards using virtual scroll component, subsequent pages must be loaded using infinite scroll technique (preferably using `@tanstack/react-virtual`)
-   - Design the card as
-     ```
-     |----------------------------------|
-     | avatar      first_name+last_name |
-     |             nationality      age |
-     |                                  |
-     |             (2 hobbies) (+n)     |
-     |----------------------------------|
-     ```
-     > display top 2 hobbies and show remaining count if applicable as _`+n`_
-   - Provide a side list in page to show top 20 hobbies and nationality that can be applied as filters
-   - Provide a searchbox to find and filter the data by first_name, last_name
+- **Node.js** 20+ (LTS recommended)
+- **Yarn** classic (v1), e.g. `npm install -g yarn`
 
-2. Read http response as stream and create a display that will print the response one character at a time
+## Run everything (2 commands)
 
-   - Create an api that responds with long text (`faker.lorem.paragraphs(32)`)
-   - Read the response as a stream, while the stream is open display the available response one character at a time
-   - Once the stream is closed print entire response
+From the repository root:
 
-3. Create an api that will process each request in webworker and respond with the result over websocket
+```bash
+yarn
+yarn dev
+```
 
-   - The api endpoint must cache each request into an in-memory queue and respond with `pending`
-   - The queued requests must be processed in a webworker, the worker should send a result over websockets (for the exercise a text result can be sent after a timeout of 2seconds)
-   - In react show 20 items that correspond to 20 requests, display `pending` for each of the requests and display corresponding result on receiving the websocket result
+This installs dependencies for all workspaces and starts:
 
-   > request --> `pending` --> socket message --> `result`
+| Service | URL | Notes |
+|--------|-----|--------|
+| **API** | [http://localhost:3000](http://localhost:3000) | REST + Socket.IO (`/ws`) |
+| **Client** | [http://localhost:5173](http://localhost:5173) | Vite dev server; `/api` and `/ws` are **proxied** to port 3000 |
+
+Use the app in the **browser at port 5173** so API calls and websockets go through the Vite proxy.
+
+### Optional: run services separately
+
+```bash
+yarn dev:server   # API only (port 3000)
+yarn dev:client   # Vite only (port 5173)
+```
+
+## Root scripts
+
+| Script | Purpose |
+|--------|---------|
+| `yarn` | Install dependencies (workspaces: `client`, `server`) |
+| `yarn dev` | API + client in one terminal (watch mode) |
+| `yarn build` | TypeScript build for server + production build for client |
+| `yarn start` | Run compiled API (`server/dist`) — run `yarn build` first |
+| `yarn preview` | Serve the built client (after `yarn build`) |
+
+## Configuration
+
+- **API port:** defaults to `3000`. Override with env var `PORT` (see `server` — `dotenv` is supported if you add a `.env` file).
+- **Client dev proxy:** configured in `client/vite.config.ts` (`/api`, `/ws`, `/health` → `http://localhost:3000`).
+
+## Project layout
+
+```
+presight-execise/
+├── client/     # React app (Vite)
+├── server/     # Express + MongoDB (in-memory for local dev)
+├── package.json
+└── README.md
+```
+
+## Production-style run (after build)
+
+```bash
+yarn build
+yarn start          # API on PORT (default 3000)
+yarn preview        # in another terminal — static client, or host client/dist behind any static server
+```
+
+For a single public origin in production, serve `client/dist` and reverse-proxy `/api` and `/ws` to the Node server.
